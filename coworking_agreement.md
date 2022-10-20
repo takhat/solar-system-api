@@ -27,5 +27,6 @@ Explaning own thoughts and code more clear.
 N/a
 
 ## Signatures
-Vivian Zhu ______________ _______________
+Vivian Zhu 
+Tapasya Khatri
 Date: 10/19/2022_
