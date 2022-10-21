@@ -30,3 +30,25 @@ def get_all_planets():
         "distance_from_sun": item.distance_from_sun}
         result.append(item_dict)
     return jsonify(result), 200
+
+@planet_bp.route('/<planet_id>', methods=['GET'])
+def get_one_planet(planet_id):
+    
+    try:
+        planet_id = int(planet_id)
+    except ValueError:
+        return jsonify({"msg": f"invalid data type: {planet_id}"}), 400
+    chosen_planet = None
+    for item in planet_items:
+        if item.id == planet_id:
+            chosen_planet = item
+    if chosen_planet is None:
+        return({"msg": f"could not find planet item with id: {planet_id}"}), 404
+    result = {
+        'id': chosen_planet.id,
+        "name": chosen_planet.name,
+        "description": chosen_planet.description,
+        "distance_from_sun": chosen_planet.distance_from_sun
+    } 
+    
+    return jsonify(result), 200
