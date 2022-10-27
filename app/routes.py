@@ -1,5 +1,7 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+from app import db
 
+'''
 class Planet:
     def __init__(self, id, name, description, distance_from_sun):
         self.id = id
@@ -16,14 +18,17 @@ planet_items = [
     Planet(7, "Uranus","Rotates at 90 degrees",19.8),
     Planet(8, "Neptune","Dark, cold and whipped by supersonic winds", 30.1)
 ]
-planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
+'''
 
+planet_bp = Blueprint("planet", __name__, url_prefix="/planet")
+from app.models.planet import Planet
 
 @planet_bp.route('', methods=['GET'])
 def get_all_planets():
     """converts a list of objects into a list of dictionaries"""
     result = []
-    for item in planet_items:
+    all_planets = Planet.query.all()
+    for item in all_planets:
         item_dict = {"id": item.id, 
         "name": item.name,
         "description":item.description,
@@ -31,6 +36,7 @@ def get_all_planets():
         result.append(item_dict)
     return jsonify(result), 200
 
+'''
 @planet_bp.route('/<planet_id>', methods=['GET'])
 def get_one_planet(planet_id):
     
@@ -52,3 +58,21 @@ def get_one_planet(planet_id):
     } 
     
     return jsonify(result), 200
+'''
+
+@planet_bp.route("",methods=["POST"])
+def create_one_planet():
+    request_body = request.get_json()
+    new_planet = Planet(
+        name = request_body["name"], 
+        description = request_body["description"], 
+        distance_from_sun = request_body["distance_from_sun"]
+        )
+    db.session.add(new_planet)
+    db.session.commit()
+
+    return jsonify(
+        {"msg":f"successfully created planet with id: \
+        {new_planet.id}"}, 201
+        )
+        
