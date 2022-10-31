@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort, make_response
 from app import db
 
 '''
@@ -36,29 +36,10 @@ def get_all_planets():
         result.append(item_dict)
     return jsonify(result), 200
 
-'''
 @planet_bp.route('/<planet_id>', methods=['GET'])
 def get_one_planet(planet_id):
-    
-    try:
-        planet_id = int(planet_id)
-    except ValueError:
-        return jsonify({"msg": f"invalid data type: {planet_id}"}), 400
-    chosen_planet = None
-    for item in planet_items:
-        if item.id == planet_id:
-            chosen_planet = item
-    if chosen_planet is None:
-        return({"msg": f"could not find planet item with id: {planet_id}"}), 404
-    result = {
-        'id': chosen_planet.id,
-        "name": chosen_planet.name,
-        "description": chosen_planet.description,
-        "distance_from_sun": chosen_planet.distance_from_sun
-    } 
-    
-    return jsonify(result), 200
-'''
+    chosen_planet = get_planet_from_id(planet_id)
+    return jsonify(chosen_planet.to_dict()), 200
 
 @planet_bp.route("",methods=["POST"])
 def create_one_planet():
@@ -72,7 +53,39 @@ def create_one_planet():
     db.session.commit()
 
     return jsonify(
-        {"msg":f"successfully created planet with id: \
-        {new_planet.id}"}, 201
+        {"msg":f"successfully created planet with id: {new_planet.id}"}, 201
         )
+@planet_bp.route("/<planet_id>",methods=["PUT"])
+def update_one_planet(planet_id):
+    update_planet = get_planet_from_id(planet_id)
+    request_body = request.get_json()
+    try:
+        update_planet.name = request_body["name"]
+        update_planet.description = request_body["description"]
+        update_planet.distance_from_sun = request_body["distance_from_sun"]
+    # except KeyError as e:
+    #     return jsonify({"msg": f"missing needed data {e.args[0]}"}, 400)
+    except KeyError:
+        return jsonify({"msg": f"missing needed data"}, 400)
+    db.session.commit()
+    return jsonify({"msg":f"Successfully updated planet with id: {update_planet.id}"}), 200
+
+@planet_bp.route("/<planet_id>",methods=["DELETE"])
+def delete_planet(planet_id):
+    planet_to_delete = get_planet_from_id(planet_id)
+    db.session.delete(planet_to_delete)
+    db.session.commit()
+    return jsonify({"msg": f"successfully deleted planet with id {planet_to_delete.id}"}), 200
+def get_planet_from_id(planet_id):
+
+    try:
+        planet_id = int(planet_id)
+    except ValueError:
+        return abort(make_response({"msg": f"invalid data type: {planet_id}"}, 400))
+    chosen_planet = Planet.query.get(planet_id)
+
+    if chosen_planet is None:
+        return abort(make_response({
+            "msg": f"could not find planet item with id: {planet_id}"}, 404))
         
+    return chosen_planet
