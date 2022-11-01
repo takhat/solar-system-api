@@ -26,14 +26,15 @@ from app.models.planet import Planet
 @planet_bp.route('', methods=['GET'])
 def get_all_planets():
     """converts a list of objects into a list of dictionaries"""
+    
+    distance_from_sun_query_value = request.args.get("distance_from_sun")
+    if distance_from_sun_query_value is not None:
+        planets = Planet.query.filter_by(distance_from_sun=distance_from_sun_query_value)
+    else:
+        planets = Planet.query.all()    
     result = []
-    all_planets = Planet.query.all()
-    for item in all_planets:
-        item_dict = {"id": item.id, 
-        "name": item.name,
-        "description":item.description,
-        "distance_from_sun": item.distance_from_sun}
-        result.append(item_dict)
+    for item in planets:
+        result.append(item.to_dict())
     return jsonify(result), 200
 
 @planet_bp.route('/<planet_id>', methods=['GET'])
