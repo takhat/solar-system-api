@@ -54,8 +54,8 @@ def create_one_planet():
     db.session.commit()
 
     return jsonify(
-        {"msg":f"successfully created planet with id: {new_planet.id}"}, 201
-        )
+        {"msg":f"successfully created planet with id: {new_planet.id}"}), 201
+        
 @planet_bp.route("/<planet_id>",methods=["PUT"])
 def update_one_planet(planet_id):
     update_planet = get_planet_from_id(planet_id)
